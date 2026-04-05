@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Page2Podcast — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <div class="title-block">
+          <div class="logo-wrap">
+            <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+              <rect x="0"  y="5.5" width="3" height="5"  rx="1.5" fill="#6366f1"/>
+              <rect x="5"  y="2.5" width="3" height="11" rx="1.5" fill="#6366f1"/>
+              <rect x="10" y="0"   width="3" height="16" rx="1.5" fill="#6366f1"/>
+              <rect x="15" y="3.5" width="3" height="9"  rx="1.5" fill="#6366f1"/>
+              <rect x="20" y="6"   width="2" height="4"  rx="1"   fill="#6366f1" opacity="0.5"/>
+            </svg>
+          </div>
+          <div>
+            <h1>Page2Podcast</h1>
+            <p>Settings &amp; API keys</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>API Keys</h2>
+          <p class="card-desc">
+            Keys are stored locally in <code>chrome.storage.sync</code> and never leave your browser.
+            You need a <strong>Gemini key</strong> and at least one TTS key.
+          </p>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <label for="geminiKey">
+              Gemini API key
+              <a class="label-link" href="https://ai.google.dev/gemini-api/docs/get-started" target="_blank" rel="noopener noreferrer">Get key ↗</a>
+            </label>
+            <input id="geminiKey" type="password" autocomplete="off" placeholder="AIza…" />
+            <p class="hint" id="geminiHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="openAiKey">
+              OpenAI API key
+              <span class="badge">Recommended</span>
+            </label>
+            <input id="openAiKey" type="password" autocomplete="off" placeholder="sk-…" />
+            <p class="hint" id="openAiHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="ttsKey">ElevenLabs API key <span class="badge-opt">Optional</span></label>
+            <input id="ttsKey" type="password" autocomplete="off" placeholder="Your ElevenLabs API key" />
+            <p class="hint" id="ttsHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="elevenVoiceId">ElevenLabs voice ID <span class="badge-opt">Optional</span></label>
+            <input id="elevenVoiceId" type="text" autocomplete="off" placeholder="e.g. EXAVITQu4vr4xnSDxMaL" />
+            <p class="hint">
+              Find this under <em>Voices</em> in your ElevenLabs dashboard — open the voice and copy the <strong>Voice ID</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="saveKeysBtn" class="primary-button">Save keys</button>
+          <button id="clearKeysBtn" class="ghost-button">Clear keys</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Preferences</h2>
+          <p class="card-desc">Customise how your podcast episodes are generated.</p>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <label for="ttsProvider">TTS provider</label>
+            <select id="ttsProvider">
+              <option value="openai">OpenAI (recommended)</option>
+              <option value="elevenlabs">ElevenLabs</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="podcastName">Podcast name</label>
+              <input id="podcastName" type="text" autocomplete="off" placeholder="e.g. The Digital Digest" />
+            </div>
+            <div class="field">
+              <label for="hostName">Host name</label>
+              <input id="hostName" type="text" autocomplete="off" placeholder="e.g. Alex Kim" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="voiceSelect">Voice</label>
+              <select id="voiceSelect">
+                <option value="default-voice">Default</option>
+                <option value="female-1">Female 1</option>
+                <option value="male-1">Male 1</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="lengthSelect">Episode length</label>
+              <select id="lengthSelect">
+                <option value="short">Short (2–3 min)</option>
+                <option value="medium">Medium (5–7 min)</option>
+                <option value="long">Long (8–10 min)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="toneSelect">Tone</label>
+            <select id="toneSelect">
+              <option value="neutral">Neutral</option>
+              <option value="educational">Educational</option>
+              <option value="casual">Casual</option>
+              <option value="salesy">Salesy</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="savePrefsBtn" class="primary-button">Save preferences</button>
+        </div>
+      </section>
+
+      <p id="statusText" class="status-text"></p>
+    </main>
+
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

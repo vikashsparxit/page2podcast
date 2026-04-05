@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Page2Podcast</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <div class="title-block">
+          <svg class="logo-icon" width="22" height="16" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+            <rect x="0"  y="5.5" width="3" height="5"  rx="1.5" fill="#6366f1"/>
+            <rect x="5"  y="2.5" width="3" height="11" rx="1.5" fill="#6366f1"/>
+            <rect x="10" y="0"   width="3" height="16" rx="1.5" fill="#6366f1"/>
+            <rect x="15" y="3.5" width="3" height="9"  rx="1.5" fill="#6366f1"/>
+            <rect x="20" y="6"   width="2" height="4"  rx="1"   fill="#6366f1" opacity="0.5"/>
+          </svg>
+          <span class="title">Page2Podcast</span>
+        </div>
+        <button id="settingsBtn" class="icon-button" title="Settings">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="8" cy="8" r="2.5"/>
+            <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/>
+          </svg>
+        </button>
+      </header>
+
+      <!-- ── Onboarding ── -->
+      <section id="onboardingSection" class="card hidden">
+        <div class="onboarding-icon">
+          <svg width="28" height="20" viewBox="0 0 22 16" fill="none" aria-hidden="true">
+            <rect x="0"  y="5.5" width="3" height="5"  rx="1.5" fill="#6366f1" opacity="0.4"/>
+            <rect x="5"  y="2.5" width="3" height="11" rx="1.5" fill="#6366f1" opacity="0.7"/>
+            <rect x="10" y="0"   width="3" height="16" rx="1.5" fill="#6366f1"/>
+            <rect x="15" y="3.5" width="3" height="9"  rx="1.5" fill="#6366f1" opacity="0.7"/>
+            <rect x="20" y="6"   width="2" height="4"  rx="1"   fill="#6366f1" opacity="0.4"/>
+          </svg>
+        </div>
+        <h2>Connect your APIs</h2>
+        <p class="subtitle">Add your Gemini and TTS keys to start turning web pages into podcasts.</p>
+        <button id="openSettingsFromOnboarding" class="primary-button full-width">Open Settings</button>
+      </section>
+
+      <!-- ── Main (Generate + History) ── -->
+      <section id="mainSection" class="card hidden">
+        <div class="tabs">
+          <button id="tabGenerate" class="tab active">Generate</button>
+          <button id="tabHistory"  class="tab">History</button>
+        </div>
+
+        <div id="generateView">
+          <div class="status-row" id="statusRow">
+            <span class="status-label">Status</span>
+            <span id="statusDot" class="status-dot" style="display:none"></span>
+            <span id="statusText" class="status-text">Ready to generate.</span>
+          </div>
+
+          <ol class="steps">
+            <li id="step-extract" class="step active">Extracting</li>
+            <li id="step-plan"    class="step">Planning</li>
+            <li id="step-script"  class="step">Script</li>
+            <li id="step-audio"   class="step">Audio</li>
+            <li id="step-final"   class="step">Done</li>
+          </ol>
+
+          <div class="page-title-row">
+            <span class="label">Page</span>
+            <span id="pageTitle" class="page-title">Detecting…</span>
+          </div>
+
+          <div class="button-row">
+            <button id="generateBtn" class="primary-button full-width">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Generate Podcast Audio
+            </button>
+          </div>
+
+          <details id="scriptContainer" class="script-container hidden">
+            <summary>Show generated script</summary>
+            <textarea id="scriptText" class="script-textarea" spellcheck="false"></textarea>
+            <div class="script-actions">
+              <button id="generateAudioBtn"    class="primary-button">Generate Audio</button>
+              <button id="regenerateScriptBtn" class="secondary-button">Regenerate</button>
+            </div>
+          </details>
+
+          <div id="downloadSection" class="download-section hidden">
+            <button id="downloadBtn" class="download-button full-width">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download MP3
+            </button>
+            <p class="hint-text">Your podcast will download as an MP3 file.</p>
+          </div>
+
+          <p id="errorText" class="error-text hidden"></p>
+        </div>
+
+        <div id="historyView" class="hidden">
+          <p class="section-label">Recent episodes</p>
+          <div id="historyEmpty" class="empty-state">No episodes yet. Generate a podcast and it will appear here.</div>
+          <ul id="historyList" class="history-list"></ul>
+        </div>
+      </section>
+
+      <!-- ── Settings (inline, replaces main) ── -->
+      <section id="settingsView" class="hidden">
+        <div class="settings-topbar">
+          <button id="settingsBackBtn" class="back-button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="settings-title">Settings</span>
+        </div>
+
+        <!-- API Keys -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">API Keys</span>
+            <span class="settings-card-desc">Stored locally · never shared</span>
+          </div>
+
+          <div class="field">
+            <label for="sGeminiKey">Gemini API key</label>
+            <input id="sGeminiKey" type="password" autocomplete="off" placeholder="AIza…" />
+            <p class="field-hint" id="sGeminiHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="sOpenAiKey">
+              OpenAI API key
+              <span class="badge">Recommended</span>
+            </label>
+            <input id="sOpenAiKey" type="password" autocomplete="off" placeholder="sk-…" />
+            <p class="field-hint" id="sOpenAiHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="sTtsKey">
+              ElevenLabs API key
+              <span class="badge-opt">Optional</span>
+            </label>
+            <input id="sTtsKey" type="password" autocomplete="off" placeholder="Your ElevenLabs key" />
+            <p class="field-hint" id="sTtsHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="sElevenVoiceId">
+              ElevenLabs voice ID
+              <span class="badge-opt">Optional</span>
+            </label>
+            <input id="sElevenVoiceId" type="text" autocomplete="off" placeholder="e.g. EXAVITQu4vr4xnSDxMaL" />
+          </div>
+
+          <div class="button-row">
+            <button id="sSaveKeysBtn"  class="primary-button">Save keys</button>
+            <button id="sClearKeysBtn" class="secondary-button">Clear keys</button>
+          </div>
+        </div>
+
+        <!-- Preferences -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">Preferences</span>
+          </div>
+
+          <div class="field">
+            <label for="sTtsProvider">TTS provider</label>
+            <select id="sTtsProvider">
+              <option value="openai">OpenAI (recommended)</option>
+              <option value="elevenlabs">ElevenLabs (best quality)</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="sPodcastName">Podcast name</label>
+              <input id="sPodcastName" type="text" autocomplete="off" placeholder="e.g. The Digital Digest" />
+            </div>
+            <div class="field">
+              <label for="sHostName">Host name</label>
+              <input id="sHostName" type="text" autocomplete="off" placeholder="e.g. Alex Kim" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="sLengthSelect">Episode length</label>
+              <select id="sLengthSelect">
+                <option value="short">Short (2–3 min)</option>
+                <option value="medium">Medium (5–7 min)</option>
+                <option value="long">Long (8–10 min)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sToneSelect">Tone</label>
+              <select id="sToneSelect">
+                <option value="neutral">Neutral</option>
+                <option value="educational">Educational</option>
+                <option value="casual">Casual</option>
+                <option value="salesy">Salesy</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button id="sSavePrefsBtn" class="primary-button">Save preferences</button>
+          </div>
+        </div>
+
+        <p id="sStatusText" class="settings-status"></p>
+      </section>
+
+    </div>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

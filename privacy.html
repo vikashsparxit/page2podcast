@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Privacy Policy — Page2Podcast</title>
+  <style>
+    :root {
+      --bg: #09090b; --surface: #18181b; --accent: #6366f1;
+      --text: #fafafa; --text-2: #a1a1aa; --border: rgba(255,255,255,0.08);
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 15px; line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
+    header { margin-bottom: 40px; }
+    .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .logo svg { flex-shrink: 0; }
+    .logo-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    h1 { margin: 0 0 6px; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+    .meta { color: var(--text-2); font-size: 14px; margin: 0; }
+    section { margin-bottom: 36px; }
+    h2 {
+      font-size: 17px; font-weight: 600; margin: 0 0 10px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    p { margin: 0 0 14px; color: var(--text-2); }
+    ul { margin: 0 0 14px; padding-left: 20px; color: var(--text-2); }
+    li { margin-bottom: 6px; }
+    strong { color: var(--text); }
+    .highlight {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      margin: 0 0 14px; color: var(--text-2);
+    }
+    .highlight strong { color: var(--accent); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-2); font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <svg width="26" height="19" viewBox="0 0 22 16" fill="none">
+        <rect x="0"  y="5.5" width="3" height="5"  rx="1.5" fill="#6366f1"/>
+        <rect x="5"  y="2.5" width="3" height="11" rx="1.5" fill="#6366f1"/>
+        <rect x="10" y="0"   width="3" height="16" rx="1.5" fill="#6366f1"/>
+        <rect x="15" y="3.5" width="3" height="9"  rx="1.5" fill="#6366f1"/>
+        <rect x="20" y="6"   width="2" height="4"  rx="1"   fill="#6366f1" opacity="0.5"/>
+      </svg>
+      <span class="logo-title">Page2Podcast</span>
+    </div>
+    <h1>Privacy Policy</h1>
+    <p class="meta">Effective date: April 2026 &nbsp;·&nbsp; Version 1.0</p>
+  </header>
+
+  <div class="highlight">
+    <strong>Short version:</strong> Page2Podcast does not collect, store, or transmit any personal data to any server we operate. Your API keys never leave your browser. The extension reads page content only when you click Generate, sends it directly to Google Gemini and your chosen TTS provider, and saves nothing else.
+  </div>
+
+  <section>
+    <h2>1. What we collect</h2>
+    <p>Page2Podcast collects <strong>no personal data</strong>. We do not run any backend servers. There is no analytics, no tracking, no crash reporting that sends data anywhere we control.</p>
+  </section>
+
+  <section>
+    <h2>2. API keys you provide</h2>
+    <p>To use Page2Podcast you optionally provide third-party API keys (Google Gemini, OpenAI, ElevenLabs). These keys are stored using <code>chrome.storage.sync</code>, which keeps them inside your Chrome profile and syncs them across your signed-in Chrome instances via Google's infrastructure — the same mechanism Chrome uses for your bookmarks and passwords.</p>
+    <ul>
+      <li>We never read, transmit, or log your API keys.</li>
+      <li>Your keys are sent directly and exclusively to the respective third-party API endpoints (Google, OpenAI, ElevenLabs) when you trigger a generation. They go from your browser to that provider — not through any server we control.</li>
+      <li>You can delete all stored keys at any time from the Settings panel inside the extension.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Page content</h2>
+    <p>When you click <strong>Generate</strong>, the extension reads text from the currently active tab and sends it to the Google Gemini API to generate a podcast script. This content is sent under your own Google API key and is subject to Google's privacy policy.</p>
+    <p>We do not store page content. We do not log it. We do not send it anywhere other than the provider you have configured.</p>
+  </section>
+
+  <section>
+    <h2>4. Audio files</h2>
+    <p>Generated audio is processed entirely in your browser (Chrome extension service worker) and downloaded directly to your device. No audio is uploaded to or stored on any server we operate.</p>
+  </section>
+
+  <section>
+    <h2>5. Permissions used and why</h2>
+    <ul>
+      <li><strong>activeTab</strong> — to read the title and URL of the tab you want to convert.</li>
+      <li><strong>scripting</strong> — to inject the content extraction script into the active tab when you click Generate. Only runs on demand, not automatically.</li>
+      <li><strong>storage</strong> — to persist your API keys and preferences locally in Chrome.</li>
+      <li><strong>sidePanel</strong> — to display the extension UI in Chrome's side panel.</li>
+      <li><strong>host_permissions (&lt;all_urls&gt;)</strong> — required so the content extraction script can run on any website you choose to convert. The script only reads visible text (headings and paragraphs). It never modifies pages, runs in the background, or transmits data without your action.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Third-party services</h2>
+    <p>When you use Page2Podcast, your data is processed by the following third parties under their own privacy policies:</p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google LLC</a> — Gemini API (script generation)</li>
+      <li><a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener">OpenAI, Inc.</a> — TTS API (audio generation, if selected)</li>
+      <li><a href="https://elevenlabs.io/privacy" target="_blank" rel="noopener">ElevenLabs, Inc.</a> — TTS API (audio generation, if selected)</li>
+    </ul>
+    <p>We encourage you to review each provider's privacy policy to understand how they handle data sent through their APIs.</p>
+  </section>
+
+  <section>
+    <h2>7. Children's privacy</h2>
+    <p>Page2Podcast is not directed at children under 13 and we do not knowingly collect any information from children.</p>
+  </section>
+
+  <section>
+    <h2>8. Changes to this policy</h2>
+    <p>If this policy changes materially, we will update the effective date above and publish the new version. Continued use of the extension after an update constitutes acceptance of the revised policy.</p>
+  </section>
+
+  <section>
+    <h2>9. Contact</h2>
+    <p>Questions about this privacy policy? Open an issue on our GitHub repository or contact us via the Chrome Web Store listing.</p>
+  </section>
+
+  <footer>
+    &copy; 2026 Page2Podcast. All rights reserved.
+  </footer>
+</div>
+</body>
+</html>
