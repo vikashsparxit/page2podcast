@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Page2Podcast — Generate Icons</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #09090b; color: #fafafa;
+           display: flex; flex-direction: column; align-items: center;
+           justify-content: center; min-height: 100vh; margin: 0; gap: 16px; }
+    p { color: #a1a1aa; font-size: 14px; }
+    canvas { border: 1px solid #27272a; border-radius: 8px; }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<p id="msg">Generating icons…</p>
+<script>
+const canvas = document.getElementById("c");
+const ctx    = canvas.getContext("2d");
+
+function drawIcon(size) {
+  canvas.width  = size;
+  canvas.height = size;
+  ctx.clearRect(0, 0, size, size);
+
+  // Dark rounded background
+  const r = Math.round(size * 0.22);
+  ctx.fillStyle = "#09090b";
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, r);
+  ctx.fill();
+
+  // Subtle indigo border
+  ctx.strokeStyle = "rgba(99,102,241,0.35)";
+  ctx.lineWidth   = Math.max(1, size * 0.025);
+  ctx.beginPath();
+  ctx.roundRect(ctx.lineWidth / 2, ctx.lineWidth / 2,
+                size - ctx.lineWidth, size - ctx.lineWidth, r - 1);
+  ctx.stroke();
+
+  // Waveform bars — heights represent a podcast audio waveform
+  const barHeights = [0.28, 0.52, 0.76, 1.0, 0.82, 0.56, 0.32];
+  const numBars    = barHeights.length;
+  const padX       = size * 0.16;
+  const availW     = size - padX * 2;
+  const gap        = availW * 0.055;
+  const barW       = (availW - gap * (numBars - 1)) / numBars;
+  const maxH       = size * 0.5;
+  const centerY    = size * 0.53;
+  const br         = Math.min(barW / 2, size * 0.06);
+
+  barHeights.forEach((relH, i) => {
+    const h    = maxH * relH;
+    const x    = padX + i * (barW + gap);
+    const y    = centerY - h / 2;
+    const alpha = 0.55 + 0.45 * relH;  // taller bars are more opaque
+
+    ctx.fillStyle = `rgba(99,102,241,${alpha.toFixed(2)})`;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, h, br);
+    ctx.fill();
+  });
+
+  return canvas.toDataURL("image/png");
+}
+
+function download(dataUrl, filename) {
+  const a = document.createElement("a");
+  a.href     = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Stagger downloads so Chrome doesn't block them
+const sizes = [16, 48, 128];
+sizes.forEach((size, i) => {
+  setTimeout(() => {
+    const dataUrl = drawIcon(size);
+    download(dataUrl, `icon${size}.png`);
+    // Show preview of last (largest) icon
+    if (i === sizes.length - 1) {
+      drawIcon(128);
+      document.getElementById("msg").textContent =
+        "✓ Downloaded icon16.png, icon48.png, icon128.png — move them to the icons/ folder in your extension.";
+    }
+  }, i * 300);
+});
+</script>
+</body>
+</html>

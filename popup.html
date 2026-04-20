@@ -46,6 +46,8 @@
       <section id="mainSection" class="card hidden">
         <div class="tabs">
           <button id="tabGenerate" class="tab active">Generate</button>
+          <button id="tabScript"   class="tab">Script</button>
+          <button id="tabScouts"   class="tab">Scouts</button>
           <button id="tabHistory"  class="tab">History</button>
         </div>
 
@@ -72,8 +74,18 @@
           <div class="button-row">
             <button id="generateBtn" class="primary-button full-width">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Generate Podcast Audio
+              Generate Podcast
             </button>
+          </div>
+
+          <div class="model-select-row">
+            <label for="modelSelect" class="model-select-label">AI model</label>
+            <select id="modelSelect" class="model-select">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash ⚡ (default)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro 🧠 (best quality)</option>
+              <option value="gpt-4o">GPT-4o (OpenAI)</option>
+              <option value="claude-sonnet-4-5">Claude Sonnet (Anthropic)</option>
+            </select>
           </div>
 
           <details id="scriptContainer" class="script-container hidden">
@@ -85,17 +97,188 @@
             </div>
           </details>
 
+          <!-- Episode metadata — shown when audio is ready, editable before publish -->
+          <div id="episodeMetaSection" class="episode-meta-section hidden">
+            <p class="section-label">Episode details</p>
+            <div class="field">
+              <label for="episodeTitleField">Title</label>
+              <input id="episodeTitleField" type="text" autocomplete="off" placeholder="AI-generated title" />
+            </div>
+            <div class="field">
+              <label for="episodeDescField">Show notes</label>
+              <textarea id="episodeDescField" rows="3" placeholder="AI-generated show notes (shown to listeners before they hit play)"></textarea>
+            </div>
+          </div>
+
+          <!-- SEO & YouTube metadata — collapsible, shown alongside episode meta -->
+          <details id="seoMetaSection" class="seo-meta-section hidden">
+            <summary class="seo-summary">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              YouTube &amp; SEO metadata
+            </summary>
+
+            <div class="seo-field">
+              <div class="seo-field-header">
+                <span class="seo-label">SEO title <span class="seo-hint">(keyword-first, 60 chars)</span></span>
+                <button class="copy-btn" data-target="seoTitleVal">Copy</button>
+              </div>
+              <div id="seoTitleVal" class="seo-value"></div>
+              <div id="seoAltTitles" class="seo-alts"></div>
+            </div>
+
+            <div class="seo-field">
+              <div class="seo-field-header">
+                <span class="seo-label">YouTube chapters <span class="seo-hint">(paste into description)</span></span>
+                <button class="copy-btn" data-target="seoChaptersVal">Copy</button>
+              </div>
+              <textarea id="seoChaptersVal" class="seo-chapters-textarea" readonly></textarea>
+            </div>
+
+            <div class="seo-field">
+              <div class="seo-field-header">
+                <span class="seo-label">Tags <span class="seo-hint">(YouTube tags field)</span></span>
+                <button class="copy-btn" data-target="seoTagsVal">Copy</button>
+              </div>
+              <div id="seoTagsVal" class="seo-value seo-tags-val"></div>
+            </div>
+
+            <div class="seo-field">
+              <div class="seo-field-header">
+                <span class="seo-label">Thumbnail text <span class="seo-hint">(7 words, bold overlay)</span></span>
+                <button class="copy-btn" data-target="seoThumbnailVal">Copy</button>
+              </div>
+              <div id="seoThumbnailVal" class="seo-value seo-thumbnail-val"></div>
+            </div>
+
+            <div class="seo-field">
+              <div class="seo-field-header">
+                <span class="seo-label">YouTube description <span class="seo-hint">(first 2 visible lines)</span></span>
+                <button class="copy-btn" data-target="seoYtDescVal">Copy</button>
+              </div>
+              <div id="seoYtDescVal" class="seo-value"></div>
+            </div>
+          </details>
+
           <div id="downloadSection" class="download-section hidden">
+            <audio id="audioPlayer" controls preload="none" class="audio-player"></audio>
             <button id="downloadBtn" class="download-button full-width">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
               Download MP3
             </button>
-            <p class="hint-text">Your podcast will download as an MP3 file.</p>
+            <button id="publishBtn" class="publish-button full-width hidden">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19V5M5 12l7-7 7 7"/><path d="M3 19h18" stroke-width="2.2"/>
+              </svg>
+              Publish to Buzzsprout
+            </button>
+            <div id="publishResult" class="publish-result hidden"></div>
+            <p class="hint-text">Download saves locally. Publish sends to Buzzsprout for Spotify distribution.</p>
           </div>
 
           <p id="errorText" class="error-text hidden"></p>
+        </div>
+
+        <!-- ── Script tab ── -->
+        <div id="scriptView" class="hidden">
+          <p class="section-label">Paste your script</p>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="customEpisodeTitle">Episode title</label>
+            <input id="customEpisodeTitle" type="text" autocomplete="off" placeholder="e.g. No-BS AI Briefing — Intro Episode" />
+          </div>
+          <textarea
+            id="customScriptInput"
+            class="custom-script-textarea"
+            placeholder="Paste your script here — human-written or AI-generated. Click Generate Audio when ready."
+            spellcheck="false"
+          ></textarea>
+          <div class="script-input-meta">
+            <span id="customScriptWordCount" class="word-count">0 words</span>
+            <button id="customScriptClear" class="clear-link">Clear</button>
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="customEpisodeDesc">
+              Show notes
+              <button id="customGenerateMetaBtn" class="generate-meta-btn" title="Generate title &amp; show notes from script using AI">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" stroke="none"/></svg>
+                AI fill
+              </button>
+            </label>
+            <textarea id="customEpisodeDesc" rows="2" placeholder="What's this episode about? (shown to listeners before they hit play)"></textarea>
+          </div>
+          <div class="button-row">
+            <button id="customScriptAudioBtn" class="primary-button full-width">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              Generate Audio
+            </button>
+          </div>
+          <div id="customDownloadSection" class="download-section hidden">
+            <audio id="customAudioPlayer" controls preload="none" class="audio-player"></audio>
+            <button id="customDownloadBtn" class="download-button full-width">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download MP3
+            </button>
+            <button id="customPublishBtn" class="publish-button full-width hidden">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19V5M5 12l7-7 7 7"/><path d="M3 19h18" stroke-width="2.2"/>
+              </svg>
+              Publish to Buzzsprout
+            </button>
+            <div id="customPublishResult" class="publish-result hidden"></div>
+            <p class="hint-text">Audio generated from your pasted script.</p>
+          </div>
+          <p id="customErrorText" class="error-text hidden"></p>
+        </div>
+
+        <!-- ── Scouts tab ── -->
+        <div id="scoutsView" class="hidden">
+          <div class="scouts-header">
+            <p class="section-label">Yutori Scouts</p>
+            <button id="scoutsRefreshBtn" class="icon-btn" title="Refresh">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+          </div>
+
+          <div id="scoutsNoKey" class="scouts-no-key hidden">
+            <p>Add your Yutori API key in <strong>Settings → Yutori Scouts</strong> to manage scouts.</p>
+            <button id="scoutsGoToSettings" class="secondary-button" style="margin-top:8px;width:100%">Open Settings</button>
+          </div>
+
+          <div id="scoutsLoading" class="scouts-loading hidden">
+            <span class="btn-spinner btn-spinner-dark"></span>
+            <span>Loading scouts…</span>
+          </div>
+
+          <div id="scoutsEmpty" class="empty-state hidden">No scouts yet. Create one in Settings → Yutori Scouts.</div>
+
+          <!-- Scout list -->
+          <ul id="scoutsList" class="scouts-list"></ul>
+
+          <!-- Scout detail (replaces list) -->
+          <div id="scoutDetail" class="hidden">
+            <div class="scout-detail-header">
+              <button id="scoutBackBtn" class="back-link">← All scouts</button>
+              <span id="scoutDetailName" class="scout-detail-name"></span>
+            </div>
+
+            <div class="scout-updates-label">
+              <span class="section-label">Latest update</span>
+              <span id="scoutUpdateDate" class="scout-update-date"></span>
+            </div>
+
+            <div id="scoutUpdateContent" class="scout-update-content">No update yet.</div>
+
+            <div class="button-row" style="margin-top:12px;">
+              <button id="scoutGenerateBtn" class="primary-button full-width" disabled>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Generate Episode from Scout
+              </button>
+            </div>
+            <p id="scoutError" class="error-text hidden"></p>
+          </div>
         </div>
 
         <div id="historyView" class="hidden">
@@ -154,6 +337,15 @@
             <input id="sElevenVoiceId" type="text" autocomplete="off" placeholder="e.g. EXAVITQu4vr4xnSDxMaL" />
           </div>
 
+          <div class="field">
+            <label for="sAnthropicKey">
+              Anthropic API key
+              <span class="badge-opt">Optional</span>
+            </label>
+            <input id="sAnthropicKey" type="password" autocomplete="off" placeholder="sk-ant-…" />
+            <p class="field-hint" id="sAnthropicHint"></p>
+          </div>
+
           <div class="button-row">
             <button id="sSaveKeysBtn"  class="primary-button">Save keys</button>
             <button id="sClearKeysBtn" class="secondary-button">Clear keys</button>
@@ -176,23 +368,14 @@
 
           <div class="field-row">
             <div class="field">
-              <label for="sPodcastName">Podcast name</label>
-              <input id="sPodcastName" type="text" autocomplete="off" placeholder="e.g. The Digital Digest" />
-            </div>
-            <div class="field">
-              <label for="sHostName">Host name</label>
-              <input id="sHostName" type="text" autocomplete="off" placeholder="e.g. Alex Kim" />
-            </div>
-          </div>
-
-          <div class="field-row">
-            <div class="field">
               <label for="sLengthSelect">Episode length</label>
               <select id="sLengthSelect">
                 <option value="short">Short (2–3 min)</option>
                 <option value="medium">Medium (5–7 min)</option>
                 <option value="long">Long (8–10 min)</option>
+                <option value="extralong">Extra Long (12–15 min) ⚠️</option>
               </select>
+              <p class="field-hint" id="sLengthHint"></p>
             </div>
             <div class="field">
               <label for="sToneSelect">Tone</label>
@@ -208,6 +391,222 @@
           <div class="button-row">
             <button id="sSavePrefsBtn" class="primary-button">Save preferences</button>
           </div>
+        </div>
+
+        <!-- Podcast Identity -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">Podcast Identity</span>
+            <span class="settings-card-desc">Shapes every generated script</span>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="sPodcastName">Podcast name</label>
+              <input id="sPodcastName" type="text" autocomplete="off" placeholder="e.g. The Digital Digest" />
+            </div>
+            <div class="field">
+              <label for="sHostName">Host name</label>
+              <input id="sHostName" type="text" autocomplete="off" placeholder="e.g. Alex Kim" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="sSponsorLine">
+              Sponsor
+              <span class="badge-opt">Optional</span>
+            </label>
+            <input id="sSponsorLine" type="text" autocomplete="off" placeholder='e.g. Acme — the API platform for builders' />
+            <p class="field-hint">Just the sponsor name/tagline. Used as: "[Podcast], brought to you by [sponsor] — welcome back, I'm [host]…"</p>
+          </div>
+
+          <div class="field">
+            <label for="sPodcastDesc">Show description</label>
+            <textarea id="sPodcastDesc" rows="2" autocomplete="off" placeholder="e.g. A weekly show breaking down the latest in AI, startups, and tech culture for curious professionals."></textarea>
+            <p class="field-hint">1–2 sentences. Used in every intro to set the show's voice.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="sPodcastCategory">Show category</label>
+              <select id="sPodcastCategory">
+                <option value="">Not specified</option>
+                <option value="Technology">Technology</option>
+                <option value="Business">Business</option>
+                <option value="Education">Education</option>
+                <option value="Science">Science</option>
+                <option value="Health & Wellness">Health &amp; Wellness</option>
+                <option value="Finance">Finance</option>
+                <option value="True Crime">True Crime</option>
+                <option value="Society & Culture">Society &amp; Culture</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Sports">Sports</option>
+                <option value="News">News</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sEpisodeFormat">Episode format</label>
+              <select id="sEpisodeFormat">
+                <option value="solo">Solo deep-dive</option>
+                <option value="interview">Interview style</option>
+                <option value="news">News roundup</option>
+                <option value="story">Narrative storytelling</option>
+                <option value="tutorial">Educational tutorial</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="sTargetAudience">Target audience</label>
+            <input id="sTargetAudience" type="text" autocomplete="off" placeholder="e.g. tech entrepreneurs, early-stage founders, curious generalists" />
+            <p class="field-hint">Who listens? The AI will pitch ideas at the right level.</p>
+          </div>
+
+          <div class="field">
+            <label for="sCustomSegments">
+              Quick segment order
+              <span class="badge-opt">Optional</span>
+            </label>
+            <textarea id="sCustomSegments" rows="2" autocomplete="off" placeholder="e.g. Cold open → Headlines → Deep dive → Takeaway → Close"></textarea>
+            <p class="field-hint">Simple segment list. Ignored when Episode Template is set below.</p>
+          </div>
+
+          <div class="field">
+            <label for="sEpisodeTemplate">
+              Episode template
+              <span class="badge-opt">Power feature</span>
+            </label>
+            <textarea id="sEpisodeTemplate" rows="10" autocomplete="off" placeholder="Paste your full episode structure here — each segment with its purpose, length, tone, and example lines. The AI will follow this for every episode, using page content as raw research material and filling any gaps from its own knowledge."></textarea>
+            <p class="field-hint">When set, overrides the Episode Format dropdown. Source page becomes research input — the AI produces an episode that fits your template exactly.</p>
+          </div>
+
+          <div class="button-row">
+            <button id="sSaveIdentityBtn" class="primary-button">Save identity</button>
+          </div>
+        </div>
+
+        <!-- Yutori Scouts -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">Yutori Scouts</span>
+            <span class="settings-card-desc">Automated research → episode pipeline</span>
+          </div>
+
+          <div class="field">
+            <label for="sYutoriKey">Yutori API key</label>
+            <input id="sYutoriKey" type="password" autocomplete="off" placeholder="yt-…" />
+            <p class="field-hint" id="sYutoriKeyHint"></p>
+          </div>
+
+          <div class="button-row">
+            <button id="sSaveYutoriBtn" class="primary-button">Save key</button>
+            <button id="sClearYutoriBtn" class="secondary-button">Clear</button>
+          </div>
+
+          <!-- Auto-generate toggle -->
+          <div class="auto-generate-row">
+            <div class="auto-generate-label">
+              <span class="field-label-text">Auto-generate episodes</span>
+              <span class="field-hint" style="margin:0">When a new scout update arrives, generate script + audio and save a Buzzsprout draft automatically.</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="sAutoGenerate" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div id="sScoutSummary" class="scout-settings-summary hidden"></div>
+
+          <!-- Create scout — hidden when one already exists -->
+          <div id="sCreateScoutSection">
+            <p class="field-hint" style="margin-top:14px;font-weight:600;color:var(--text)">Create a new scout</p>
+
+            <div class="field">
+              <label for="sScoutQuery">Research query</label>
+              <textarea id="sScoutQuery" rows="2" autocomplete="off" placeholder="e.g. Latest developments in AI agents and autonomous systems"></textarea>
+              <p class="field-hint">What should the scout research and report on?</p>
+            </div>
+
+            <div class="field">
+              <label for="sScoutInterval">Update frequency</label>
+              <select id="sScoutInterval">
+                <option value="3600">Hourly</option>
+                <option value="21600">Every 6 hours</option>
+                <option value="86400" selected>Daily</option>
+                <option value="604800">Weekly</option>
+              </select>
+            </div>
+
+            <div class="button-row">
+              <button id="sCreateScoutBtn" class="primary-button">Create Scout</button>
+            </div>
+            <p id="sCreateScoutStatus" class="settings-status"></p>
+          </div>
+
+          <div id="sScoutExistsNote" class="hidden">
+            <p class="field-hint" style="margin-top:12px;">To create a new scout, delete your existing one in the <strong>Scouts tab</strong> first.</p>
+          </div>
+        </div>
+
+        <!-- Buzzsprout Publishing -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">Buzzsprout Publishing</span>
+            <span class="settings-card-desc">Auto-publish to Spotify &amp; Apple Podcasts</span>
+          </div>
+
+          <div class="buzzsprout-info">
+            <p>Episodes published here appear on Spotify, Apple Podcasts, and 20+ platforms via Buzzsprout's RSS distribution. Requires a free or paid Buzzsprout account.</p>
+          </div>
+
+          <div class="field">
+            <label for="sBuzzsproutKey">Buzzsprout API key</label>
+            <input id="sBuzzsproutKey" type="password" autocomplete="off" placeholder="Your Buzzsprout API token" />
+            <p class="field-hint" id="sBuzzsproutKeyHint"></p>
+          </div>
+
+          <div class="field">
+            <label for="sBuzzsproutPodcastId">Podcast ID</label>
+            <input id="sBuzzsproutPodcastId" type="text" autocomplete="off" placeholder="e.g. 2190872" />
+            <p class="field-hint">Found in your Buzzsprout dashboard URL: buzzsprout.com/<strong>PODCAST_ID</strong></p>
+          </div>
+
+          <div class="field">
+            <label for="sBuzzsproutPublishMode">Publish mode</label>
+            <select id="sBuzzsproutPublishMode">
+              <option value="draft">Draft — review before going live</option>
+              <option value="published">Published — go live immediately</option>
+            </select>
+          </div>
+
+          <div class="button-row">
+            <button id="sSaveBuzzsproutBtn" class="primary-button">Save publishing settings</button>
+            <button id="sClearBuzzsproutBtn" class="secondary-button">Clear</button>
+          </div>
+        </div>
+
+        <!-- Web App Sync -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <span class="settings-card-title">Web App Sync</span>
+            <span class="settings-card-desc">Sync episodes to page2podcast.app</span>
+          </div>
+          <p class="field-hint" style="margin-bottom:10px;">Connect your extension to the Page2Podcast web app to access your episode library from any browser.</p>
+          <div class="field">
+            <label for="sWebAppUrl">Web app URL</label>
+            <input id="sWebAppUrl" type="text" autocomplete="off" placeholder="https://your-app.vercel.app" />
+          </div>
+          <div class="field">
+            <label for="sWebAppSecret">API secret</label>
+            <input id="sWebAppSecret" type="password" autocomplete="off" placeholder="From your web app .env (API_SECRET)" />
+            <p class="field-hint">Set in your web app's environment variables. Episodes sync automatically after each generation.</p>
+          </div>
+          <div class="button-row">
+            <button id="sSaveWebAppBtn" class="primary-button">Save</button>
+            <button id="sClearWebAppBtn" class="secondary-button">Clear</button>
+          </div>
+          <p id="sWebAppStatus" class="settings-status"></p>
         </div>
 
         <p id="sStatusText" class="settings-status"></p>
