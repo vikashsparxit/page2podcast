@@ -1,101 +1,157 @@
 # Page2Podcast
 
-> Convert any web page into a podcast-style MP3 — in one click.
+> Convert any web page into a fully produced podcast episode — in one click.
 
-**Page2Podcast** is a Chrome extension that reads the content of any article, blog post, or web page, uses Google Gemini AI to write a natural spoken-word podcast script, then generates a full-length MP3 audio file using OpenAI or ElevenLabs text-to-speech. The result downloads straight to your device.
+**Page2Podcast** is a Chrome extension that reads the content of any article, blog post, or web page, uses Google Gemini AI to write a natural spoken-word podcast script, generates a full-length MP3 via OpenAI or ElevenLabs TTS, and publishes it directly to Buzzsprout (Spotify, Apple Podcasts, and 20+ platforms) — all without leaving your browser.
+
+[**Install from Chrome Web Store →**](https://chromewebstore.google.com/detail/bjecbglodkapoclpgbgbdabemccfaepp)
 
 ---
 
-## How it works
+## What it does
 
-1. Open any article or web page in Chrome
-2. Click the **Page2Podcast** icon in your toolbar to open the side panel
-3. Click **Generate Podcast Audio**
-4. The extension extracts the page text → writes a conversational podcast script via Gemini AI → synthesises speech via your chosen TTS provider
-5. Review or edit the script, then click **Generate Audio**
-6. Download your MP3 and listen anywhere
+1. Open any article, blog post, or web page in Chrome
+2. Click the **Page2Podcast** icon to open the side panel
+3. Choose your episode format and click **Generate Script**
+4. Review or edit the AI-written script
+5. Click **Generate Audio** → full MP3 in seconds
+6. Download your MP3 or publish directly to Buzzsprout → Spotify / Apple Podcasts
 
 ---
 
 ## Features
 
-- **Side panel UI** — stays open alongside the page, no popup overlay
-- **AI-written scripts** — Gemini AI rewrites page content as a natural, spoken-word podcast episode with hooks, transitions, and a conversational tone
-- **High-quality TTS** — OpenAI TTS (`onyx` voice with podcast delivery instructions) or ElevenLabs (any voice ID, `eleven_turbo_v2_5` model)
-- **Script editor** — review and edit the generated script before converting to audio
-- **Inline settings** — configure API keys and preferences without leaving the panel
-- **Episode history** — revisit and re-generate audio for recent episodes in this session
-- **Configurable** — podcast name, host name, episode length (2–10 min), tone (neutral / educational / casual / salesy), TTS provider and voice
-- **Privacy-first** — all API keys stored locally in Chrome, never sent to any server we control
+### AI Script Generation
+- **Google Gemini AI** rewrites any page as a natural, spoken-word podcast episode — with hooks, transitions, and a conversational tone
+- **5 episode formats** to match your content style:
+  - Solo Deep-Dive — one host, thorough exploration
+  - Interview Style — host + guest Q&A format
+  - News Roundup — multiple stories, journalist tone
+  - Narrative Storytelling — story arc with tension and resolution
+  - Educational Tutorial — step-by-step teaching style
+- **Podcast Identity** — define your show once, applied to every episode:
+  - Podcast name, host name, show description
+  - Category (Technology, Business, Health, Education, and more)
+  - Target audience
+  - Custom segments (e.g. "Cold open", "Main story", "Takeaways", "Sign-off")
+- **Episode length** — Short (2–3 min), Medium (5–7 min), Long (8–10 min)
+- **Tone** — Neutral, Educational, Casual, or Salesy
+
+### Audio Generation
+- **OpenAI TTS** (`gpt-4o-mini-tts`, `onyx` voice with podcast delivery instructions)
+- **ElevenLabs TTS** (`eleven_turbo_v2_5` — any voice ID from the ElevenLabs library)
+- Download MP3 directly to your device
+
+### Buzzsprout Publishing
+- Publish episodes directly to Buzzsprout from the extension
+- Auto-fills title, description, and show notes
+- Buzzsprout distributes to **Spotify, Apple Podcasts, Amazon Music, iHeart Radio**, and 20+ platforms via RSS
+- Stores your Buzzsprout podcast ID and API token in Settings
+
+### SEO & YouTube Metadata
+Every episode generates a full SEO metadata panel alongside the script:
+- **SEO title** — keyword-first, optimised for search
+- **Alt titles** — 3 title variations to A/B test
+- **YouTube chapters** — timestamped markers ready to paste into a YouTube video description
+- **Tags** — comma-separated keyword tags for YouTube and podcast platforms
+- **Thumbnail text** — short punchy text for video thumbnail overlays
+- **Show notes** — keyword-rich paragraph for Buzzsprout / Spotify description and YouTube description
+- One-click copy button for every field
+
+### Yutori Scouts — Autonomous Content Monitoring
+- Connect a **Yutori Scout** to monitor any topic (AI news, research papers, competitor updates, funding rounds…)
+- Scout detects new content → Page2Podcast automatically generates a script + audio + Buzzsprout draft
+- **Auto-generate toggle** — fully hands-off pipeline: episode is ready in your feed while you sleep
+- **Chrome notification** when a new episode is auto-generated
+- Configure scout query, cadence, and episode format per scout
+
+### Episode History
+- Full episode history persists across browser restarts (up to 100 entries)
+- Revisit any past episode: view script, SEO metadata, regenerate audio
+- Stored locally in `chrome.storage.local` — no account required
+
+### Privacy-First
+- All API keys stored locally in your Chrome profile via `chrome.storage.sync`
+- Page content is sent directly from your browser to Google Gemini under **your own API key** — not through any server we operate
+- No account required, no data collection
 
 ---
 
 ## Setup
 
-### Prerequisites
+### Install from Chrome Web Store
 
-You need API keys from at least two providers:
+[**Page2Podcast on Chrome Web Store →**](https://chromewebstore.google.com/detail/bjecbglodkapoclpgbgbdabemccfaepp)
+
+After installing, click the extension icon → open **Settings** and add your API keys.
+
+### Install manually (developer mode)
+
+1. Clone this repo
+2. Open Chrome → `chrome://extensions`
+3. Enable **Developer mode** (top-right toggle)
+4. Click **Load unpacked** → select this project folder
+5. Click the Page2Podcast icon → side panel opens → go to **Settings**
+
+---
+
+## API Keys Required
 
 | Provider | Used for | Get key |
 |---|---|---|
 | [Google Gemini](https://ai.google.dev) | Script generation | [ai.google.dev](https://ai.google.dev/gemini-api/docs/get-started) |
-| [OpenAI](https://platform.openai.com) | Text-to-speech (recommended) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| [ElevenLabs](https://elevenlabs.io) | Text-to-speech (best quality) | [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) |
+| [OpenAI](https://platform.openai.com) | Text-to-speech | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| [ElevenLabs](https://elevenlabs.io) | Text-to-speech (higher quality) | [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) |
+| [Buzzsprout](https://www.buzzsprout.com) | Podcast publishing | Buzzsprout → Account Settings → API |
+| [Yutori](https://scouts.yutori.com) | Autonomous content scouting | scouts.yutori.com (early access) |
 
-You need **Gemini + at least one TTS key** (OpenAI or ElevenLabs).
-
-### Install from Chrome Web Store
-
-> Currently under review — link will be added on approval.
-
-### Install manually (developer mode)
-
-1. Clone or download this repo
-2. Open Chrome → `chrome://extensions`
-3. Enable **Developer mode** (top right toggle)
-4. Click **Load unpacked** → select this project folder
-5. Click the Page2Podcast icon in your toolbar → side panel opens → go to **Settings** and add your API keys
+You need **Gemini + at least one TTS key**. Buzzsprout and Yutori are optional.
 
 ---
 
 ## Configuration
 
-Open the **Settings** panel (gear icon in the top-right of the side panel):
+Open **Settings** (gear icon in the side panel):
 
 | Setting | Description |
 |---|---|
-| **Gemini API key** | Required for script generation |
-| **OpenAI API key** | Required if using OpenAI TTS |
-| **ElevenLabs API key** | Required if using ElevenLabs TTS |
-| **ElevenLabs voice ID** | Optional — paste any voice ID from the ElevenLabs voice library |
-| **TTS provider** | OpenAI or ElevenLabs |
-| **Podcast name** | Used in the script intro and outro |
-| **Host name** | The host name the AI writes as |
-| **Episode length** | Short (2–3 min) / Medium (5–7 min) / Long (8–10 min) |
-| **Tone** | Neutral / Educational / Casual / Salesy |
-
-All settings are stored locally using `chrome.storage.sync` — synced across your Chrome profile, never sent to any server we control.
+| Gemini API key | Required for script generation |
+| OpenAI API key | Required if using OpenAI TTS |
+| ElevenLabs API key + Voice ID | Required if using ElevenLabs TTS |
+| TTS provider | Choose OpenAI or ElevenLabs |
+| Buzzsprout API token + Podcast ID | Required for Buzzsprout publishing |
+| Podcast name | Used in every script intro/outro |
+| Host name | The AI writes as this host |
+| Podcast description | Defines the show's voice and focus |
+| Category | Podcast category (Technology, Business, etc.) |
+| Target audience | Shapes tone and vocabulary |
+| Episode format | Default format for new episodes |
+| Custom segments | Optional segment list (e.g. Cold open, Takeaways) |
+| Episode length | Short / Medium / Long |
+| Tone | Neutral / Educational / Casual / Salesy |
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Extension platform | Chrome Manifest V3 — side panel, service worker |
 | Script generation | [Google Gemini API](https://ai.google.dev) (`gemini-2.5-flash`) |
 | Text-to-speech | [OpenAI TTS](https://platform.openai.com/docs/guides/text-to-speech) (`gpt-4o-mini-tts`) or [ElevenLabs](https://elevenlabs.io/docs/api-reference) (`eleven_turbo_v2_5`) |
-| Storage | `chrome.storage.sync` (keys + prefs) · `chrome.storage.session` (history) |
+| Podcast publishing | [Buzzsprout API](https://www.buzzsprout.com/api) |
+| Content monitoring | [Yutori Scouts](https://scouts.yutori.com) |
+| Storage | `chrome.storage.sync` (keys + prefs) · `chrome.storage.local` (episode history) |
 | Build system | None — plain JS/HTML/CSS, load unpacked |
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
 page2podcast/
 ├── manifest.json        # Extension config and permissions
-├── background.js        # Service worker: Gemini + TTS API calls
+├── background.js        # Service worker: Gemini, TTS, Buzzsprout, Scouts pipeline
 ├── content.js           # Page content extraction (injected on demand)
 ├── popup.html/css/js    # Side panel UI
 ├── options.html/css/js  # Settings page
@@ -105,9 +161,15 @@ page2podcast/
 
 ---
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the full product plan — video podcast generation (HeyGen), autonomous YouTube publishing, and more.
+
+---
+
 ## Privacy
 
-Page2Podcast collects no personal data. API keys are stored locally in your Chrome profile via `chrome.storage.sync`. Page content is sent directly from your browser to Google Gemini under your own API key — not through any server we operate. Generated audio is processed in the browser and downloaded to your device.
+Page2Podcast collects no personal data. API keys are stored locally in your Chrome profile via `chrome.storage.sync`. Page content is sent directly from your browser to Google Gemini under your own API key — not through any server we operate. Generated audio is processed in your browser and downloaded to your device.
 
 [Full privacy policy →](https://vikashsparxit.github.io/page2podcast/privacy.html)
 
@@ -121,4 +183,4 @@ Issues and pull requests are welcome. Please open an issue first to discuss sign
 
 ## License
 
-MIT
+[MIT](LICENSE)
