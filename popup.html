@@ -283,6 +283,7 @@
 
         <div id="historyView" class="hidden">
           <p class="section-label">Recent episodes</p>
+          <p id="historyStatus" class="field-hint hidden"></p>
           <div id="historyEmpty" class="empty-state">No episodes yet. Generate a podcast and it will appear here.</div>
           <ul id="historyList" class="history-list"></ul>
         </div>
@@ -595,15 +596,20 @@
           <p class="field-hint" style="margin-bottom:10px;">Connect your extension to the Page2Podcast web app to access your episode library from any browser.</p>
           <div class="field">
             <label for="sWebAppUrl">Web app URL</label>
-            <input id="sWebAppUrl" type="text" autocomplete="off" placeholder="https://your-app.vercel.app" />
+            <input id="sWebAppUrl" type="text" autocomplete="off" placeholder="https://podcastai-sigma.vercel.app" />
           </div>
           <div class="field">
-            <label for="sWebAppSecret">API secret</label>
+            <label for="sWebAppSecret">API secret (optional if signed in)</label>
             <input id="sWebAppSecret" type="password" autocomplete="off" placeholder="From your web app .env (API_SECRET)" />
-            <p class="field-hint">Set in your web app's environment variables. Episodes sync automatically after each generation.</p>
+            <p class="field-hint">Legacy anonymous sync. Sign in below to link episodes to your account.</p>
           </div>
           <div class="button-row">
-            <button id="sSaveWebAppBtn" class="primary-button">Save</button>
+            <button id="sWebAppSignInBtn" class="primary-button">Sign in with Google</button>
+            <button id="sWebAppSignOutBtn" class="secondary-button hidden">Sign out</button>
+          </div>
+          <p id="sWebAppAccount" class="field-hint"></p>
+          <div class="button-row">
+            <button id="sSaveWebAppBtn" class="primary-button">Save URL</button>
             <button id="sClearWebAppBtn" class="secondary-button">Clear</button>
           </div>
           <p id="sWebAppStatus" class="settings-status"></p>

@@ -1,6 +1,8 @@
 // Open the side panel whenever the toolbar icon is clicked.
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
+import { getWebAppAuthHeader } from "./webAppAuth.js";
+
 async function getStoredKeys() {
   const { geminiApiKey, ttsApiKey, openAiApiKey, ttsProvider, anthropicApiKey } =
     await chrome.storage.sync.get([
@@ -25,17 +27,14 @@ async function addHistoryEntry(entry) {
 // Fails silently — the extension works without the web app being configured.
 async function syncEpisodeToWebApp(entry) {
   try {
-    const { webAppApiSecret, webAppUrl } = await chrome.storage.sync.get([
-      "webAppApiSecret", "webAppUrl"
-    ]);
-    if (!webAppApiSecret || !webAppUrl) return; // not configured — skip silently
+    const auth = await getWebAppAuthHeader();
+    if (!auth) return;
 
-    const baseUrl = webAppUrl.replace(/\/$/, "");
-    await fetch(`${baseUrl}/api/episodes`, {
+    await fetch(`${auth.baseUrl}/api/episodes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${webAppApiSecret}`,
+        Authorization: `Bearer ${auth.token}`,
       },
       body: JSON.stringify({
         extension_id:          entry.id,

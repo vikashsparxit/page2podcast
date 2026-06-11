@@ -1,4 +1,6 @@
 // ── DOM refs — main UI ──────────────────────────────────────────
+import { signInToWebApp, signOutWebApp, getWebAppSession, claimOrphanedEpisodes, fetchEpisodesFromWebApp, fetchEpisodeFromWebApp } from "./webAppAuth.js";
+
 const onboardingSection  = document.getElementById("onboardingSection");
 const mainSection        = document.getElementById("mainSection");
 const settingsView       = document.getElementById("settingsView");
@@ -64,6 +66,7 @@ const scoutGenerateBtn   = document.getElementById("scoutGenerateBtn");
 const scoutError         = document.getElementById("scoutError");
 const historyList  = document.getElementById("historyList");
 const historyEmpty = document.getElementById("historyEmpty");
+const historyStatus = document.getElementById("historyStatus");
 
 // ── DOM refs — script tab ────────────────────────────────────────
 const customEpisodeTitle   = document.getElementById("customEpisodeTitle");
@@ -127,6 +130,9 @@ const sClearBuzzsproutBtn   = document.getElementById("sClearBuzzsproutBtn");
 // ── DOM refs — Web App Sync settings ─────────────────────────────
 const sWebAppUrl            = document.getElementById("sWebAppUrl");
 const sWebAppSecret         = document.getElementById("sWebAppSecret");
+const sWebAppSignInBtn        = document.getElementById("sWebAppSignInBtn");
+const sWebAppSignOutBtn       = document.getElementById("sWebAppSignOutBtn");
+const sWebAppAccount          = document.getElementById("sWebAppAccount");
 const sSaveWebAppBtn        = document.getElementById("sSaveWebAppBtn");
 const sClearWebAppBtn       = document.getElementById("sClearWebAppBtn");
 const sWebAppStatus         = document.getElementById("sWebAppStatus");
@@ -1008,41 +1014,122 @@ async function handleScoutGenerate() {
 }
 
 // ── History ──────────────────────────────────────────────────────
-async function loadHistory() {
-  const { podcastHistory = [] } = await chrome.storage.local.get(["podcastHistory"]);
-  historyList.innerHTML = "";
+function formatHistoryDate(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+  });
+}
 
-  if (!podcastHistory.length) { historyEmpty.classList.remove("hidden"); return; }
+function renderHistoryItem({ title, meta, onClick }) {
+  const li = document.createElement("li");
+  li.className = "history-item";
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "history-title";
+  titleEl.textContent = title;
+
+  const metaEl = document.createElement("div");
+  metaEl.className = "history-meta";
+  metaEl.textContent = meta;
+
+  li.append(titleEl, metaEl);
+  if (onClick) li.addEventListener("click", onClick);
+  historyList.appendChild(li);
+}
+
+function loadScriptFromEntry(entry) {
+  if (!entry.script) return;
+  currentScript = entry.script;
+  currentPageTitle = entry.title || "Untitled page";
+  currentPageUrl = entry.page_url || entry.url || "";
+  currentEpisodeTitle = entry.title || currentPageTitle;
+  currentEpisodeDesc = entry.description || entry.episodeDescription || "";
+  currentSeoMeta = entry.seo_meta || entry.seoMeta || null;
+  pageTitleEl.textContent = currentPageTitle;
+  scriptTextArea.value = currentScript;
+  scriptContainer.classList.remove("hidden");
+  switchTab("generate");
+  setStatus("scriptReady", "Loaded a saved script. You can edit or generate audio.");
+}
+
+async function loadHistory() {
+  historyList.innerHTML = "";
+  if (historyStatus) {
+    historyStatus.classList.add("hidden");
+    historyStatus.textContent = "";
+  }
+
+  const session = await getWebAppSession();
+  const { webAppUrl } = await chrome.storage.sync.get(["webAppUrl"]);
+
+  if (session && webAppUrl) {
+    if (historyStatus) {
+      historyStatus.textContent = "Loading from your account…";
+      historyStatus.classList.remove("hidden");
+    }
+
+    try {
+      const episodes = await fetchEpisodesFromWebApp();
+      if (historyStatus) {
+        historyStatus.textContent = "Synced from your account";
+        historyStatus.classList.remove("hidden");
+      }
+
+      if (!episodes.length) {
+        historyEmpty.classList.remove("hidden");
+        return;
+      }
+      historyEmpty.classList.add("hidden");
+
+      episodes.forEach(ep => {
+        const hostname = ep.page_url ? (() => { try { return new URL(ep.page_url).hostname; } catch { return ep.page_url; } })() : "";
+        const source = ep.source === "script" ? "Manual script" : hostname;
+        renderHistoryItem({
+          title: ep.title || "Untitled episode",
+          meta: `${formatHistoryDate(ep.created_at)}  ·  ${source}`,
+          onClick: async () => {
+            try {
+              const full = await fetchEpisodeFromWebApp(ep.id);
+              if (full) loadScriptFromEntry(full);
+            } catch (err) {
+              console.error(err);
+              setStatus("error", "Could not load episode script.");
+            }
+          },
+        });
+      });
+      return;
+    } catch (err) {
+      console.error(err);
+      if (historyStatus) {
+        historyStatus.textContent = "Could not reach web app — showing local history.";
+        historyStatus.classList.remove("hidden");
+      }
+    }
+  }
+
+  const { podcastHistory = [] } = await chrome.storage.local.get(["podcastHistory"]);
+
+  if (!podcastHistory.length) {
+    historyEmpty.classList.remove("hidden");
+    return;
+  }
   historyEmpty.classList.add("hidden");
 
   podcastHistory.forEach(entry => {
-    const li = document.createElement("li");
-    li.className = "history-item";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "history-title";
-    titleEl.textContent = entry.title || "Untitled page";
-
-    const metaEl = document.createElement("div");
-    metaEl.className = "history-meta";
-    const date   = entry.createdAt ? new Date(entry.createdAt).toLocaleTimeString() : "";
     const source = entry.source === "manual" ? "Manual script" : (entry.url || "");
-    metaEl.textContent = `${date}  ·  ${source}`;
-
-    li.append(titleEl, metaEl);
-    li.addEventListener("click", () => {
-      if (!entry.script) return;
-      currentScript = entry.script;
-      currentPageTitle = entry.title || "Untitled page";
-      currentPageUrl   = entry.url || "";
-      pageTitleEl.textContent = currentPageTitle;
-      scriptTextArea.value = currentScript;
-      scriptContainer.classList.remove("hidden");
-      switchTab("generate");
-      setStatus("scriptReady", "Loaded a saved script. You can edit or generate audio.");
+    renderHistoryItem({
+      title: entry.title || "Untitled page",
+      meta: `${formatHistoryDate(entry.createdAt)}  ·  ${source}`,
+      onClick: () => loadScriptFromEntry({
+        script: entry.script,
+        title: entry.title,
+        url: entry.url,
+        episodeDescription: entry.episodeDescription,
+        seoMeta: entry.seoMeta,
+      }),
     });
-
-    historyList.appendChild(li);
   });
 }
 
@@ -1121,10 +1208,8 @@ async function loadSettingsForm() {
   sBuzzsproutPublishMode.value= buzzsproutPublishMode || "draft";
 
   // Web App Sync
-  if (sWebAppUrl)    sWebAppUrl.value    = webAppUrl    || "";
-  if (sWebAppStatus) sWebAppStatus.textContent = webAppApiSecret
-    ? "Connected — episodes will sync automatically."
-    : "";
+  if (sWebAppUrl) sWebAppUrl.value = webAppUrl || "";
+  await updateWebAppAuthUI(webAppUrl, webAppApiSecret);
 
   // Clear sensitive input fields
   sGeminiKey.value     = "";
@@ -1331,21 +1416,116 @@ async function clearBuzzsprout() {
   showSettingsStatus("Publishing settings cleared.", "success");
 }
 
+async function updateWebAppAuthUI(webAppUrl, webAppApiSecret) {
+  const session = await getWebAppSession();
+
+  if (sWebAppAccount) {
+    if (session?.email) {
+      sWebAppAccount.textContent = `Signed in as ${session.email}`;
+    } else if (webAppApiSecret) {
+      sWebAppAccount.textContent = "Anonymous sync — sign in to link episodes to your account.";
+    } else {
+      sWebAppAccount.textContent = "";
+    }
+  }
+
+  if (sWebAppSignInBtn) {
+    sWebAppSignInBtn.classList.toggle("hidden", !!session);
+  }
+  if (sWebAppSignOutBtn) {
+    sWebAppSignOutBtn.classList.toggle("hidden", !session);
+  }
+
+  if (sWebAppStatus) {
+    if (session) {
+      sWebAppStatus.textContent = "Signed in — episodes sync to your account.";
+      sWebAppStatus.className = "settings-status success";
+    } else if (webAppApiSecret && webAppUrl) {
+      sWebAppStatus.textContent = "Anonymous sync enabled.";
+      sWebAppStatus.className = "settings-status";
+    } else if (webAppUrl) {
+      sWebAppStatus.textContent = "Save URL and sign in to sync episodes.";
+      sWebAppStatus.className = "settings-status";
+    } else {
+      sWebAppStatus.textContent = "";
+      sWebAppStatus.className = "settings-status";
+    }
+  }
+}
+
+async function handleWebAppSignIn() {
+  const urlVal = sWebAppUrl?.value.trim();
+  if (!urlVal) {
+    if (sWebAppStatus) {
+      sWebAppStatus.textContent = "Enter your web app URL first.";
+      sWebAppStatus.className = "settings-status error";
+    }
+    return;
+  }
+
+  await chrome.storage.sync.set({ webAppUrl: urlVal });
+
+  if (sWebAppSignInBtn) sWebAppSignInBtn.disabled = true;
+  if (sWebAppStatus) {
+    sWebAppStatus.textContent = "Opening sign-in…";
+    sWebAppStatus.className = "settings-status";
+  }
+
+  try {
+    const session = await signInToWebApp(urlVal);
+    const claimed = await claimOrphanedEpisodes(urlVal, session);
+    await loadSettingsForm();
+    if (sWebAppStatus) {
+      const claimMsg = claimed > 0 ? ` Linked ${claimed} existing episode${claimed !== 1 ? "s" : ""}.` : "";
+      sWebAppStatus.textContent = `Signed in successfully.${claimMsg}`;
+      sWebAppStatus.className = "settings-status success";
+    }
+  } catch (err) {
+    console.error(err);
+    if (sWebAppStatus) {
+      sWebAppStatus.textContent = err.message?.includes("canceled")
+        ? "Sign-in cancelled."
+        : "Sign-in failed. Try again.";
+      sWebAppStatus.className = "settings-status error";
+    }
+  } finally {
+    if (sWebAppSignInBtn) sWebAppSignInBtn.disabled = false;
+  }
+}
+
+async function handleWebAppSignOut() {
+  await signOutWebApp();
+  await loadSettingsForm();
+  if (sWebAppStatus) {
+    sWebAppStatus.textContent = "Signed out.";
+    sWebAppStatus.className = "settings-status";
+  }
+}
+
 async function saveWebApp() {
   const urlVal    = sWebAppUrl?.value.trim();
   const secretVal = sWebAppSecret?.value.trim();
-  if (!urlVal || !secretVal) {
-    if (sWebAppStatus) { sWebAppStatus.textContent = "Enter both URL and API secret."; sWebAppStatus.className = "settings-status error"; }
+  const session   = await getWebAppSession();
+
+  if (!urlVal) {
+    if (sWebAppStatus) { sWebAppStatus.textContent = "Enter your web app URL."; sWebAppStatus.className = "settings-status error"; }
     return;
   }
-  await chrome.storage.sync.set({ webAppUrl: urlVal, webAppApiSecret: secretVal });
+  if (!secretVal && !session) {
+    if (sWebAppStatus) { sWebAppStatus.textContent = "Sign in or enter an API secret to enable sync."; sWebAppStatus.className = "settings-status error"; }
+    return;
+  }
+
+  const toSave = { webAppUrl: urlVal };
+  if (secretVal) toSave.webAppApiSecret = secretVal;
+  await chrome.storage.sync.set(toSave);
   if (sWebAppSecret) sWebAppSecret.value = "";
   await loadSettingsForm();
-  if (sWebAppStatus) { sWebAppStatus.textContent = "Saved — episodes will sync automatically."; sWebAppStatus.className = "settings-status success"; }
 }
 
 async function clearWebApp() {
   await chrome.storage.sync.remove(["webAppUrl", "webAppApiSecret"]);
+  await signOutWebApp();
   await loadSettingsForm();
   if (sWebAppStatus) { sWebAppStatus.textContent = "Web app sync cleared."; sWebAppStatus.className = "settings-status"; }
 }
@@ -1527,6 +1707,8 @@ sSaveBuzzsproutBtn.addEventListener("click", () => saveBuzzsprout().catch(err  =
 sClearBuzzsproutBtn.addEventListener("click",() => clearBuzzsprout().catch(err => { console.error(err); showSettingsStatus("Failed to clear publishing settings.", "error"); }));
 sSaveWebAppBtn?.addEventListener("click",    () => saveWebApp().catch(err       => { console.error(err); if (sWebAppStatus) { sWebAppStatus.textContent = "Failed to save."; sWebAppStatus.className = "settings-status error"; } }));
 sClearWebAppBtn?.addEventListener("click",   () => clearWebApp().catch(err      => { console.error(err); }));
+sWebAppSignInBtn?.addEventListener("click", () => handleWebAppSignIn().catch(err => { console.error(err); }));
+sWebAppSignOutBtn?.addEventListener("click",() => handleWebAppSignOut().catch(err => { console.error(err); }));
 publishBtn.addEventListener("click",         () => handlePublish().catch(err   => { console.error(err); showPublishResult("error", "Publish failed: " + (err.message || "Unknown error")); setBtnLoading(publishBtn, false); }));
 
 modelSelect.addEventListener("change", () => {
